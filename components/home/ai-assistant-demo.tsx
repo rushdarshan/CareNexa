@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, Mic, Send, Sparkles, Bot, StopCircle } from "lucide-react";
 import { getGeminiResponse } from "@/lib/gemini";
 
-// Speech Recognition Type Definition
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
-  }
-}
+
 
 export function AIAssistantDemo() {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([
@@ -177,8 +171,8 @@ export function AIAssistantDemo() {
                       >
                         <div
                           className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${message.role === "user"
-                              ? "bg-primary text-primary-foreground rounded-tr-sm"
-                              : "bg-muted text-foreground rounded-tl-sm border border-border/50"
+                            ? "bg-primary text-primary-foreground rounded-tr-sm"
+                            : "bg-muted text-foreground rounded-tl-sm border border-border/50"
                             }`}
                         >
                           {message.content}

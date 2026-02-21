@@ -32,13 +32,13 @@ export function SOSButton() {
     return (
         <>
             <motion.div
-                className="fixed bottom-6 right-6 z-50"
+                className="fixed bottom-6 left-6 z-50"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
             >
                 <Button
                     size="lg"
-                    className="rounded-full h-16 w-16 bg-red-600 hover:bg-red-700 shadow-[0_0_20px_rgba(220,38,38,0.5)] border-4 border-red-400 animate-pulse flex flex-col items-center justify-center p-0"
+                    className="rounded-full h-14 w-14 md:h-16 md:w-16 bg-red-600 hover:bg-red-700 shadow-[0_0_20px_rgba(220,38,38,0.5)] border-4 border-red-400 animate-pulse flex flex-col items-center justify-center p-0"
                     onClick={() => {
                         setShowEmergency(true);
                         setCountdown(5);

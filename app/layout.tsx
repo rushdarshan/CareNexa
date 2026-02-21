@@ -12,6 +12,13 @@ import { SOSButton } from '@/components/ui/sos-button';
 
 const inter = Inter({ subsets: ['latin'] });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: 'CareNexa - AI-Powered Healthcare',
   description: 'Transform your smartphone into a powerful diagnostic tool with CareNexa',

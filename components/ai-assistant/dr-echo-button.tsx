@@ -10,7 +10,7 @@ export function DrEchoButton() {
 
   return (
     <motion.div
-      className="fixed bottom-24 right-6 z-50"
+      className="fixed bottom-20 right-4 md:bottom-24 md:right-6 z-[60]"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
@@ -19,7 +19,7 @@ export function DrEchoButton() {
     >
       <button
         onClick={openAssistant}
-        className="relative flex items-center justify-center w-16 h-16 rounded-full shadow-lg overflow-hidden focus:outline-none"
+        className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full shadow-lg overflow-hidden focus:outline-none"
         aria-label="Open Dr. Echo AI Health Assistant"
       >
         {/* Glass morphism background */}

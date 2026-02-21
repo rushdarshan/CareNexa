@@ -8,6 +8,8 @@ if (!apiKey) {
 
 const genAI = new GoogleGenerativeAI(apiKey || "");
 
+export const healthcareSystemPrompt = "You are Dr. Echo, a CareNexa AI health assistant. Provide helpful, accurate, and empathetic health information. Always recommend consulting a healthcare professional for serious concerns.";
+
 export const getGeminiResponse = async (history: { role: string; parts: string }[], message: string) => {
   if (!apiKey) return "Error: API Key not configured.";
 

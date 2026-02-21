@@ -12,47 +12,47 @@ export interface HealthHeatPoint {
 
 // Helper function to generate more clustered data points for better visualization
 function generateClusteredPoints(
-  centerLat: number, 
-  centerLng: number, 
-  count: number, 
-  clusterRadius: number, 
+  centerLat: number,
+  centerLng: number,
+  count: number,
+  clusterRadius: number,
   dataType: 'covid' | 'flu' | 'allergies' | 'healthcare_access',
   valueMultiplier: number,
   clusterFactor: number = 2.5
 ): HealthHeatPoint[] {
   const points: HealthHeatPoint[] = [];
-  
+
   // Create a few cluster centers
   const clusterCenters = Array.from({ length: 5 }, () => ({
     lat: centerLat + (Math.random() - 0.5) * 0.1,
     lng: centerLng + (Math.random() - 0.5) * 0.1,
   }));
-  
+
   for (let i = 0; i < count; i++) {
     // Choose randomly whether this point belongs to a cluster or is more scattered
     const isInCluster = Math.random() < 0.7; // 70% of points will be in clusters
-    
-    let lat, lng;
-    
+
+    let lat: number, lng: number;
+
     if (isInCluster) {
       // Choose a random cluster center
       const center = clusterCenters[Math.floor(Math.random() * clusterCenters.length)];
-      
+
       // Generate a point near the cluster center
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.random() * clusterRadius * 0.7; // Shorter distance for tighter clusters
-      
+
       lat = center.lat + Math.sin(angle) * distance / 111; // Approx conversion to degrees
       lng = center.lng + Math.cos(angle) * distance / (111 * Math.cos(center.lat * Math.PI / 180));
     } else {
       // Generate a more scattered point
       const angle = Math.random() * Math.PI * 2;
       const distance = Math.random() * clusterRadius;
-      
+
       lat = centerLat + Math.sin(angle) * distance / 111;
       lng = centerLng + Math.cos(angle) * distance / (111 * Math.cos(centerLat * Math.PI / 180));
     }
-    
+
     // Create intensity based on proximity to cluster centers
     let maxIntensity = 0;
     clusterCenters.forEach(center => {
@@ -62,11 +62,11 @@ function generateClusteredPoints(
       const calculatedIntensity = Math.max(0, 1 - (distToCenter * 111 * clusterFactor / clusterRadius));
       maxIntensity = Math.max(maxIntensity, calculatedIntensity);
     });
-    
+
     // Add some randomness to intensity but keep it high for visibility
     const intensity = Math.min(0.5 + maxIntensity * 0.5 + Math.random() * 0.2, 1);
     const value = Math.floor(intensity * valueMultiplier);
-    
+
     points.push({
       lat,
       lng,
@@ -76,7 +76,7 @@ function generateClusteredPoints(
       label: `${dataType.replace('_', ' ')}: ${value}`
     });
   }
-  
+
   return points;
 }
 

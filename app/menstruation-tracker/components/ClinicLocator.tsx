@@ -3,24 +3,24 @@ import { MapView } from "@/components/maps/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Hospital, 
-  Stethoscope, 
+import {
+  Hospital,
+  Stethoscope,
   PlusCircle,
-  Search, 
+  Search,
   Map,
   Thermometer,
   Heart,
@@ -125,9 +125,9 @@ export default function ClinicLocator() {
         <div className="flex-1 min-w-[260px]">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Search clinics or locations..." 
+            <Input
+              type="text"
+              placeholder="Search clinics or locations..."
               className="pl-9"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -180,7 +180,7 @@ export default function ClinicLocator() {
                     <h3 className="font-medium text-lg">{selectedClinic.name}</h3>
                     <p className="text-sm text-muted-foreground">{selectedClinic.address}</p>
                   </div>
-                  <Badge variant={selectedClinic.isOpen ? "success" : "secondary"}>
+                  <Badge variant={selectedClinic.isOpen ? "default" : "secondary"}>
                     {selectedClinic.isOpen ? "Open Now" : "Closed"}
                   </Badge>
                 </div>
@@ -208,7 +208,7 @@ export default function ClinicLocator() {
         </TabsContent>
 
         <TabsContent value="list" className="mt-4">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"

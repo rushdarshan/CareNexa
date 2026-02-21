@@ -24,7 +24,8 @@ import {
   Clock,
   Award,
   PieChart,
-  Download
+  Download,
+  BarChart2
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -79,6 +80,9 @@ const MentalWellness: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'mood' | 'anxiety' | 'sleep' | 'energy' | 'focus'>('mood');
   const [insightMode, setInsightMode] = useState<'patterns' | 'triggers' | 'risks' | 'growth'>('patterns');
   const [moodData, setMoodData] = useState<MoodEntry[]>([]);
+  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'night'>('morning');
+  const [journalEntry, setJournalEntry] = useState('');
+  const [selectedMoodTags, setSelectedMoodTags] = useState<string[]>([]);
   const [insights, setInsights] = useState<InsightMetrics>({
     averageMood: 3.8,
     moodTrend: 'up',
@@ -99,16 +103,16 @@ const MentalWellness: React.FC = () => {
     // Create 30 days of mock data
     const data: MoodEntry[] = [];
     const now = new Date();
-    
+
     for (let i = 0; i < 30; i++) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
-      
+
       // Generate some patterns - better mood on weekends, etc.
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
       const baseMood = isWeekend ? 4.2 : 3.7;
       const dayVariation = Math.random() * 1.5 - 0.75; // -0.75 to +0.75
-      
+
       data.push({
         date: date.toISOString(),
         mood: Math.max(1, Math.min(5, baseMood + dayVariation)),
@@ -121,7 +125,7 @@ const MentalWellness: React.FC = () => {
         notes: ''
       });
     }
-    
+
     return data;
   };
 
@@ -129,46 +133,46 @@ const MentalWellness: React.FC = () => {
     // Calculate insights based on the data
     const moodSum = data.reduce((sum, entry) => sum + entry.mood, 0);
     const averageMood = Math.round((moodSum / data.length) * 10) / 10;
-    
+
     // Calculate trend (last week vs previous week)
     const recentMood = data.slice(0, 7).reduce((sum, entry) => sum + entry.mood, 0) / 7;
     const olderMood = data.slice(7, 14).reduce((sum, entry) => sum + entry.mood, 0) / 7;
-    const moodTrend = recentMood > olderMood + 0.2 ? 'up' : 
-                      recentMood < olderMood - 0.2 ? 'down' : 'stable';
-    
+    const moodTrend = recentMood > olderMood + 0.2 ? 'up' :
+      recentMood < olderMood - 0.2 ? 'down' : 'stable';
+
     // Calculate sleep quality
     const sleepSum = data.reduce((sum, entry) => sum + entry.sleep, 0);
     const sleepQuality = Math.round((sleepSum / data.length) * 10) / 10;
-    
+
     // Calculate energy level
     const energySum = data.reduce((sum, entry) => sum + entry.energy, 0);
     const energyLevel = Math.round((energySum / data.length) * 10) / 10;
-    
+
     // Find top triggers and activities
     const triggerCounts: Record<string, number> = {};
     const activityCounts: Record<string, number> = {};
-    
+
     data.forEach(entry => {
       entry.triggers.forEach(trigger => {
         triggerCounts[trigger] = (triggerCounts[trigger] || 0) + 1;
       });
-      
+
       entry.activities.forEach(activity => {
         activityCounts[activity] = (activityCounts[activity] || 0) + 1;
       });
     });
-    
+
     // Sort by count and get top 3
     const topTriggers = Object.entries(triggerCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([trigger]) => trigger);
-    
+
     const helpfulActivities = Object.entries(activityCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([activity]) => activity);
-    
+
     return {
       averageMood,
       moodTrend,
@@ -180,33 +184,35 @@ const MentalWellness: React.FC = () => {
   };
 
   const moodTags = [
-    { name: 'Happy', color: 'rgb(77, 148, 255)' }, 
+    { name: 'Happy', color: 'rgb(77, 148, 255)' },
     { name: 'Joyful', color: 'rgb(100, 125, 230)' },
-    { name: 'Calm', color: 'rgb(77, 160, 255)' }, 
+    { name: 'Calm', color: 'rgb(77, 160, 255)' },
     { name: 'Relaxed', color: 'rgb(77, 184, 255)' },
-    { name: 'Peaceful', color: 'rgb(77, 200, 255)' }, 
+    { name: 'Peaceful', color: 'rgb(77, 200, 255)' },
     { name: 'Content', color: 'rgb(0, 200, 83)' },
-    { name: 'Hopeful', color: 'rgb(0, 200, 120)' }, 
+    { name: 'Hopeful', color: 'rgb(0, 200, 120)' },
     { name: 'Grateful', color: 'rgb(0, 200, 160)' },
     { name: 'Inspired', color: 'rgb(138, 43, 226)' },
-    { name: 'Energetic', color: 'rgb(255, 160, 10)' }, 
+    { name: 'Energetic', color: 'rgb(255, 160, 10)' },
     { name: 'Motivated', color: 'rgb(255, 140, 20)' },
     { name: 'Excited', color: 'rgb(255, 120, 30)' },
-    { name: 'Anxious', color: 'rgb(255, 80, 80)' }, 
+    { name: 'Anxious', color: 'rgb(255, 80, 80)' },
     { name: 'Nervous', color: 'rgb(255, 100, 100)' },
-    { name: 'Stressed', color: 'rgb(255, 120, 120)' }, 
+    { name: 'Stressed', color: 'rgb(255, 120, 120)' },
     { name: 'Overwhelmed', color: 'rgb(255, 140, 140)' },
-    { name: 'Frustrated', color: 'rgb(250, 100, 30)' }, 
+    { name: 'Frustrated', color: 'rgb(250, 100, 30)' },
     { name: 'Sad', color: 'rgb(100, 140, 255)' },
-    { name: 'Gloomy', color: 'rgb(80, 120, 220)' }, 
+    { name: 'Gloomy', color: 'rgb(80, 120, 220)' },
     { name: 'Tired', color: 'rgb(100, 100, 120)' },
-    { name: 'Exhausted', color: 'rgb(80, 80, 100)' }, 
+    { name: 'Exhausted', color: 'rgb(80, 80, 100)' },
     { name: 'Confused', color: 'rgb(150, 150, 170)' },
     { name: 'Uncertain', color: 'rgb(120, 120, 150)' }
   ];
-  
+
   const toggleMoodTag = (tagName: string) => {
-    // Implementation of toggleMoodTag function
+    setSelectedMoodTags(prev =>
+      prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
+    );
   };
 
   const renderJournalView = () => (
@@ -216,23 +222,23 @@ const MentalWellness: React.FC = () => {
         <p>Express your thoughts and feelings to track your emotional wellbeing</p>
         <div className="date-display">Thursday, March 6, 2025</div>
       </div>
-      
+
       <div className="time-selector">
-        <button 
+        <button
           className={`time-btn ${timeOfDay === 'morning' ? 'active' : ''}`}
           onClick={() => setTimeOfDay('morning')}
         >
           <Sun size={18} />
           <span>Morning</span>
         </button>
-        <button 
+        <button
           className={`time-btn ${timeOfDay === 'afternoon' ? 'active' : ''}`}
           onClick={() => setTimeOfDay('afternoon')}
         >
           <CloudSun size={18} />
           <span>Afternoon</span>
         </button>
-        <button 
+        <button
           className={`time-btn ${timeOfDay === 'night' ? 'active' : ''}`}
           onClick={() => setTimeOfDay('night')}
         >
@@ -241,9 +247,9 @@ const MentalWellness: React.FC = () => {
         </button>
         <div className="mood-indicator">😊</div>
       </div>
-      
+
       <div className="journal-entry">
-        <textarea 
+        <textarea
           placeholder="Write about your thoughts, feelings, and experiences..."
           value={journalEntry}
           onChange={(e) => setJournalEntry(e.target.value)}
@@ -253,18 +259,18 @@ const MentalWellness: React.FC = () => {
           {journalEntry.length} chars
         </div>
       </div>
-      
+
       <div className="tags-section">
         <h2>Mood Tags</h2>
         <div className="mood-tags-grid">
           {moodTags.map(tag => (
-            <button 
+            <button
               key={tag.name}
               onClick={() => toggleMoodTag(tag.name)}
               className={`mood-tag ${selectedMoodTags.includes(tag.name) ? 'selected' : ''}`}
-              style={{ 
-                backgroundColor: selectedMoodTags.includes(tag.name) 
-                  ? tag.color 
+              style={{
+                backgroundColor: selectedMoodTags.includes(tag.name)
+                  ? tag.color
                   : 'rgba(20, 30, 20, 0.3)',
                 borderColor: tag.color
               }}
@@ -274,7 +280,7 @@ const MentalWellness: React.FC = () => {
           ))}
         </div>
       </div>
-      
+
       <div className="journal-actions">
         <button className="save-draft-btn">
           Save Draft
@@ -296,21 +302,21 @@ const MentalWellness: React.FC = () => {
             <p>Your mental health at a glance</p>
           </div>
         </div>
-        
+
         <div className="time-range-tabs">
-          <button 
+          <button
             className={`range-tab ${timeRange === 'day' ? 'active' : ''}`}
             onClick={() => setTimeRange('day')}
           >
             Day
           </button>
-          <button 
+          <button
             className={`range-tab ${timeRange === 'week' ? 'active' : ''}`}
             onClick={() => setTimeRange('week')}
           >
             Week
           </button>
-          <button 
+          <button
             className={`range-tab ${timeRange === 'month' ? 'active' : ''}`}
             onClick={() => setTimeRange('month')}
           >
@@ -324,7 +330,7 @@ const MentalWellness: React.FC = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="dashboard-grid">
         <div className="overview-card">
           <h2>Overall Wellness</h2>
@@ -332,11 +338,11 @@ const MentalWellness: React.FC = () => {
             <div className="score-circle">
               <svg viewBox="0 0 100 100" width="160" height="160">
                 <circle cx="50" cy="50" r="45" fill="transparent" stroke="rgba(77, 148, 255, 0.2)" strokeWidth="8" />
-                <circle 
-                  cx="50" cy="50" r="45" 
-                  fill="transparent" 
-                  stroke="rgb(77, 148, 255)" 
-                  strokeWidth="8" 
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="transparent"
+                  stroke="rgb(77, 148, 255)"
+                  strokeWidth="8"
                   strokeDasharray="282.7"
                   strokeDashoffset={282.7 - (282.7 * 0.71)}
                   transform="rotate(-90 50 50)"
@@ -345,7 +351,7 @@ const MentalWellness: React.FC = () => {
               <div className="score-text">71%</div>
               <div className="score-label">Wellness Score</div>
             </div>
-            
+
             <div className="metrics-list">
               <div className="metric-item">
                 <Sun size={18} className="metric-icon metric-mood" />
@@ -355,7 +361,7 @@ const MentalWellness: React.FC = () => {
                   <div className="metric-fill" style={{ width: '70%', background: 'rgb(77, 148, 255)' }}></div>
                 </div>
               </div>
-              
+
               <div className="metric-item">
                 <Activity size={18} className="metric-icon metric-anxiety" />
                 <span className="metric-name">Anxiety</span>
@@ -364,7 +370,7 @@ const MentalWellness: React.FC = () => {
                   <div className="metric-fill" style={{ width: '70%', background: 'rgb(255, 122, 0)' }}></div>
                 </div>
               </div>
-              
+
               <div className="metric-item">
                 <Moon size={18} className="metric-icon metric-sleep" />
                 <span className="metric-name">Sleep</span>
@@ -373,7 +379,7 @@ const MentalWellness: React.FC = () => {
                   <div className="metric-fill" style={{ width: '80%', background: 'rgb(138, 43, 226)' }}></div>
                 </div>
               </div>
-              
+
               <div className="metric-item">
                 <Zap size={18} className="metric-icon metric-energy" />
                 <span className="metric-name">Energy</span>
@@ -382,7 +388,7 @@ const MentalWellness: React.FC = () => {
                   <div className="metric-fill" style={{ width: '60%', background: 'rgb(255, 193, 7)' }}></div>
                 </div>
               </div>
-              
+
               <div className="metric-item">
                 <Brain size={18} className="metric-icon metric-focus" />
                 <span className="metric-name">Focus</span>
@@ -394,15 +400,15 @@ const MentalWellness: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="insights-card">
           <div className="card-header">
             <h2>Daily Patterns & Insights</h2>
             <p>Understanding your daily wellness rhythms</p>
           </div>
-          
+
           <h3>Time-based Patterns</h3>
-          
+
           <div className="patterns-grid">
             <div className="pattern-box">
               <Sun className="pattern-icon" />
@@ -410,21 +416,21 @@ const MentalWellness: React.FC = () => {
               <div className="pattern-value">Morning</div>
               <div className="pattern-desc">Highest energy & mood</div>
             </div>
-            
+
             <div className="pattern-box">
               <Clock className="pattern-icon" />
               <h4>Rest Period</h4>
               <div className="pattern-value">3 PM - 4 PM</div>
               <div className="pattern-desc">Recommended break time</div>
             </div>
-            
+
             <div className="pattern-box">
               <Brain className="pattern-icon" />
               <h4>Meditation</h4>
               <div className="pattern-value">120min</div>
               <div className="pattern-desc">Total mindful minutes</div>
             </div>
-            
+
             <div className="pattern-box">
               <TrendingUp className="pattern-icon" />
               <h4>Improvement</h4>
@@ -432,13 +438,13 @@ const MentalWellness: React.FC = () => {
               <div className="pattern-desc">Mood trend this week</div>
             </div>
           </div>
-          
+
           <div className="achievements-section">
             <div className="section-header">
               <h3>Recent Achievements</h3>
               <button className="more-btn">Show More</button>
             </div>
-            
+
             <div className="achievements-grid">
               <div className="achievement-box">
                 <Medal className="achievement-icon" />
@@ -447,7 +453,7 @@ const MentalWellness: React.FC = () => {
                   <p>Logged mood for 7 days straight</p>
                 </div>
               </div>
-              
+
               <div className="achievement-box">
                 <Brain className="achievement-icon" />
                 <div>
@@ -478,7 +484,7 @@ const MentalWellness: React.FC = () => {
             </select>
           </div>
         </div>
-        
+
         <div className="tabs-row">
           <button className="tab-btn active">Mood</button>
           <button className="tab-btn">Anxiety</button>
@@ -486,28 +492,28 @@ const MentalWellness: React.FC = () => {
           <button className="tab-btn">Energy</button>
           <button className="tab-btn">Focus</button>
         </div>
-        
+
         <div className="chart-container">
           <div className="line-chart">
             {/* Placeholder for chart - in a real app we'd use a chart library */}
             <div className="chart-placeholder" style={{ height: '300px', background: 'linear-gradient(180deg, rgba(77, 148, 255, 0.2) 0%, rgba(77, 148, 255, 0) 100%)' }}>
               <svg viewBox="0 0 500 300" width="100%" height="100%">
-                <path d="M0,240 C50,180 100,220 150,200 C200,180 250,120 300,150 C350,180 400,100 450,120 C480,130 500,150 500,150" 
-                  fill="none" 
-                  stroke="rgb(77, 148, 255)" 
+                <path d="M0,240 C50,180 100,220 150,200 C200,180 250,120 300,150 C350,180 400,100 450,120 C480,130 500,150 500,150"
+                  fill="none"
+                  stroke="rgb(77, 148, 255)"
                   strokeWidth="3"
                 />
               </svg>
             </div>
           </div>
         </div>
-        
+
         <div className="trend-info">
           <h3>About Mood Rating</h3>
           <p>Your mood patterns show natural fluctuations throughout the week with peaks on weekends. Try to identify activities that positively impact your mood.</p>
         </div>
       </div>
-      
+
       <div className="patterns-section">
         <div className="section-header">
           <div>
@@ -515,21 +521,21 @@ const MentalWellness: React.FC = () => {
             <p>Discover patterns in your mood data</p>
           </div>
         </div>
-        
+
         <div className="tabs-row">
           <button className="tab-btn active">Distribution</button>
           <button className="tab-btn">Time of Day</button>
           <button className="tab-btn">Day of Week</button>
           <button className="tab-btn">Factors</button>
         </div>
-        
+
         <div className="chart-grid">
           <div className="donut-chart">
             {/* Placeholder for donut chart */}
             <div className="chart-placeholder" style={{ height: '280px' }}>
               <svg viewBox="0 0 200 200" width="200" height="200">
                 <circle cx="100" cy="100" r="80" fill="transparent" stroke="rgba(77, 148, 255, 0.5)" strokeWidth="30" strokeDasharray="502.4" strokeDashoffset="411.968" transform="rotate(-90 100 100)" />
-                <circle cx="100" cy="100" r="80" fill="transparent" stroke="rgba(138, 43, 226, 0.5)" strokeWidth="30" strokeDasharray="502.4" strokeDashoffset="477.28" strokeDashoffset="411.968" transform="rotate(10 100 100)" />
+                <circle cx="100" cy="100" r="80" fill="transparent" stroke="rgba(138, 43, 226, 0.5)" strokeWidth="30" strokeDasharray="502.4" strokeDashoffset="411.968" transform="rotate(10 100 100)" />
                 <circle cx="100" cy="100" r="80" fill="transparent" stroke="rgba(255, 122, 0, 0.5)" strokeWidth="30" strokeDasharray="502.4" strokeDashoffset="477.28" transform="rotate(85 100 100)" />
               </svg>
               <div className="chart-center-text">
@@ -539,7 +545,7 @@ const MentalWellness: React.FC = () => {
             </div>
             <div className="chart-legend">Excellent</div>
           </div>
-          
+
           <div className="pattern-insight">
             <div className="insight-header">
               <Brain size={20} />
@@ -566,7 +572,7 @@ const MentalWellness: React.FC = () => {
           Refresh
         </button>
       </div>
-      
+
       <div className="insights-tabs">
         <button className={`insight-tab ${insightMode === 'patterns' ? 'active' : ''}`} onClick={() => setInsightMode('patterns')}>
           <LineChart size={18} />
@@ -585,7 +591,7 @@ const MentalWellness: React.FC = () => {
           Growth Opportunities
         </button>
       </div>
-      
+
       <div className="insights-cards">
         <div className="insight-card">
           <div className="insight-icon">
@@ -598,7 +604,7 @@ const MentalWellness: React.FC = () => {
               <ArrowRight size={16} className="arrow-icon" />
             </div>
             <p>Your mood consistently improves by 28% on weekends compared to weekdays. This suggests work-related stress might be affecting your wellbeing.</p>
-            
+
             <div className="impact-level">
               <span>Impact Level</span>
               <div className="impact-bar">
@@ -608,7 +614,7 @@ const MentalWellness: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="insight-card">
           <div className="insight-icon">
             <Coffee size={20} />
@@ -620,7 +626,7 @@ const MentalWellness: React.FC = () => {
               <ArrowRight size={16} className="arrow-icon" />
             </div>
             <p>Morning recordings show 32% higher mood scores than evening ones, indicating potential energy depletion throughout the day.</p>
-            
+
             <div className="impact-level">
               <span>Impact Level</span>
               <div className="impact-bar">
@@ -644,11 +650,11 @@ const MentalWellness: React.FC = () => {
             <div className="status-tag good">Good</div>
           </div>
           <div className="slider-container">
-            <input 
-              type="range" 
-              className="metric-slider mood-slider" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              className="metric-slider mood-slider"
+              min="0"
+              max="100"
               defaultValue="80"
               readOnly
             />
@@ -669,11 +675,11 @@ const MentalWellness: React.FC = () => {
             <div className="status-tag mild">Mild</div>
           </div>
           <div className="slider-container">
-            <input 
-              type="range" 
-              className="metric-slider anxiety-slider" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              className="metric-slider anxiety-slider"
+              min="0"
+              max="100"
               defaultValue="35"
               readOnly
             />
@@ -694,11 +700,11 @@ const MentalWellness: React.FC = () => {
             <div className="status-tag na">N/A</div>
           </div>
           <div className="slider-container">
-            <input 
-              type="range" 
-              className="metric-slider sleep-slider" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              className="metric-slider sleep-slider"
+              min="0"
+              max="100"
               defaultValue="90"
               readOnly
             />
@@ -719,11 +725,11 @@ const MentalWellness: React.FC = () => {
             <div className="status-tag neutral">Moderate</div>
           </div>
           <div className="slider-container">
-            <input 
-              type="range" 
-              className="metric-slider energy-slider" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              className="metric-slider energy-slider"
+              min="0"
+              max="100"
               defaultValue="65"
               readOnly
             />
@@ -744,11 +750,11 @@ const MentalWellness: React.FC = () => {
             <div className="status-tag good">Focused</div>
           </div>
           <div className="slider-container">
-            <input 
-              type="range" 
-              className="metric-slider focus-slider" 
-              min="0" 
-              max="100" 
+            <input
+              type="range"
+              className="metric-slider focus-slider"
+              min="0"
+              max="100"
               defaultValue="80"
               readOnly
             />
@@ -787,52 +793,52 @@ const MentalWellness: React.FC = () => {
               <p>Your mental health at a glance</p>
             </div>
           </div>
-          
+
           <div className="time-controls">
             <div className="time-tabs">
-              <button 
+              <button
                 className={`time-tab ${timeRange === 'day' ? 'active' : ''}`}
                 onClick={() => setTimeRange('day')}
               >
                 Day
               </button>
-              <button 
+              <button
                 className={`time-tab ${timeRange === 'week' ? 'active' : ''}`}
                 onClick={() => setTimeRange('week')}
               >
                 Week
               </button>
-              <button 
+              <button
                 className={`time-tab ${timeRange === 'month' ? 'active' : ''}`}
                 onClick={() => setTimeRange('month')}
               >
                 Month
               </button>
             </div>
-            
+
             <button className="export-btn">
               <Download size={16} />
               Export Week
             </button>
-            
+
             <button className="refresh-btn">
               <RefreshCw size={16} />
               Refresh
             </button>
           </div>
         </div>
-        
+
         <div className="dashboard-grid">
           <div className="score-card">
             <h2>Overall Wellness</h2>
             <div className="score-circle">
               <svg viewBox="0 0 100 100" width="160" height="160">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(77, 148, 255, 0.2)" strokeWidth="8" />
-                <circle 
-                  cx="50" cy="50" r="45" 
-                  fill="none" 
-                  stroke="rgb(77, 148, 255)" 
-                  strokeWidth="8" 
+                <circle
+                  cx="50" cy="50" r="45"
+                  fill="none"
+                  stroke="rgb(77, 148, 255)"
+                  strokeWidth="8"
                   strokeDasharray="283"
                   strokeDashoffset={283 - (283 * 0.71)}
                   transform="rotate(-90 50 50)"
@@ -843,7 +849,7 @@ const MentalWellness: React.FC = () => {
                 <div className="score-label">Wellness Score</div>
               </div>
             </div>
-            
+
             <div className="metrics-overview">
               <div className="metric-item">
                 <Sun size={18} className="metric-icon metric-mood" />
@@ -853,7 +859,7 @@ const MentalWellness: React.FC = () => {
                 </div>
                 <span className="metric-value">70%</span>
               </div>
-              
+
               <div className="metric-item">
                 <Activity size={18} className="metric-icon metric-anxiety" />
                 <span className="metric-name">Anxiety</span>
@@ -862,7 +868,7 @@ const MentalWellness: React.FC = () => {
                 </div>
                 <span className="metric-value">70%</span>
               </div>
-              
+
               <div className="metric-item">
                 <Moon size={18} className="metric-icon metric-sleep" />
                 <span className="metric-name">Sleep</span>
@@ -871,7 +877,7 @@ const MentalWellness: React.FC = () => {
                 </div>
                 <span className="metric-value">80%</span>
               </div>
-              
+
               <div className="metric-item">
                 <Zap size={18} className="metric-icon metric-energy" />
                 <span className="metric-name">Energy</span>
@@ -880,7 +886,7 @@ const MentalWellness: React.FC = () => {
                 </div>
                 <span className="metric-value">60%</span>
               </div>
-              
+
               <div className="metric-item">
                 <Brain size={18} className="metric-icon metric-focus" />
                 <span className="metric-name">Focus</span>
@@ -891,15 +897,15 @@ const MentalWellness: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="insights-card">
             <div className="card-header">
               <h2>Daily Patterns & Insights</h2>
               <p>Understanding your daily wellness rhythms</p>
             </div>
-            
+
             <h3>Time-based Patterns</h3>
-            
+
             <div className="patterns-grid">
               <div className="pattern-box">
                 <Sun size={24} className="pattern-icon" />
@@ -907,21 +913,21 @@ const MentalWellness: React.FC = () => {
                 <div className="pattern-value">Morning</div>
                 <div className="pattern-desc">Highest energy & mood</div>
               </div>
-              
+
               <div className="pattern-box">
                 <Clock size={24} className="pattern-icon" />
                 <h4>Rest Period</h4>
                 <div className="pattern-value">3 PM - 4 PM</div>
                 <div className="pattern-desc">Recommended break time</div>
               </div>
-              
+
               <div className="pattern-box">
                 <Brain size={24} className="pattern-icon" />
                 <h4>Meditation</h4>
                 <div className="pattern-value">120min</div>
                 <div className="pattern-desc">Total mindful minutes</div>
               </div>
-              
+
               <div className="pattern-box">
                 <TrendingUp size={24} className="pattern-icon" />
                 <h4>Improvement</h4>
@@ -929,13 +935,13 @@ const MentalWellness: React.FC = () => {
                 <div className="pattern-desc">Mood trend this week</div>
               </div>
             </div>
-            
+
             <div className="achievements">
               <div className="section-header">
                 <h3>Recent Achievements</h3>
                 <button className="more-btn">Show More</button>
               </div>
-              
+
               <div className="achievements-grid">
                 <div className="achievement-item">
                   <Medal className="achievement-icon" />
@@ -944,7 +950,7 @@ const MentalWellness: React.FC = () => {
                     <p>Logged mood for 7 days straight</p>
                   </div>
                 </div>
-                
+
                 <div className="achievement-item">
                   <Brain className="achievement-icon" />
                   <div className="achievement-content">
@@ -963,21 +969,21 @@ const MentalWellness: React.FC = () => {
   return (
     <div className="mental-wellness">
       <div className="view-tabs">
-        <button 
+        <button
           className={`view-tab ${activeView === 'journal' ? 'active' : ''}`}
           onClick={() => setActiveView('journal')}
         >
           <Heart size={16} />
           Mood Journal
         </button>
-        <button 
+        <button
           className={`view-tab ${activeView === 'insights' ? 'active' : ''}`}
           onClick={() => setActiveView('insights')}
         >
-          <BarChart size={16} />
+          <BarChart2 size={16} />
           Wellness Insights
         </button>
-        <button 
+        <button
           className={`view-tab ${activeView === 'trends' ? 'active' : ''}`}
           onClick={() => setActiveView('trends')}
         >
@@ -985,7 +991,7 @@ const MentalWellness: React.FC = () => {
           Wellness Trends
         </button>
       </div>
-      
+
       {activeView === 'journal' && renderJournalView()}
       {activeView === 'insights' && renderInsightsView()}
       {activeView === 'trends' && (
@@ -994,8 +1000,7 @@ const MentalWellness: React.FC = () => {
           {renderAIInsights()}
         </>
       )}
-      
-      {renderMoodCheckInSliders()}
+
       <MoodMetrics />
       {renderDashboard()}
     </div>

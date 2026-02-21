@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Heart, Brain, Dumbbell, Pill, Utensils, Microscope, BabyIcon, EyeIcon, ToothIcon, LungsIcon } from "lucide-react";
+import { Heart, Brain, Dumbbell, Pill, Utensils, Microscope, BabyIcon, EyeIcon, CircleDot, Wind } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TopicCategory {
@@ -13,64 +13,64 @@ interface TopicCategory {
 }
 
 const categories: TopicCategory[] = [
-  { 
+  {
     id: "cardiovascular",
-    title: "Heart Health", 
+    title: "Heart Health",
     icon: Heart,
     color: "bg-red-100 dark:bg-red-900/20 text-red-500 dark:text-red-400",
   },
-  { 
+  {
     id: "mental-health",
-    title: "Mental Health", 
+    title: "Mental Health",
     icon: Brain,
     color: "bg-purple-100 dark:bg-purple-900/20 text-purple-500 dark:text-purple-400",
   },
-  { 
+  {
     id: "fitness",
-    title: "Fitness", 
+    title: "Fitness",
     icon: Dumbbell,
     color: "bg-blue-100 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400",
   },
-  { 
+  {
     id: "medication",
-    title: "Medication", 
+    title: "Medication",
     icon: Pill,
     color: "bg-green-100 dark:bg-green-900/20 text-green-500 dark:text-green-400",
   },
-  { 
+  {
     id: "nutrition",
-    title: "Nutrition", 
+    title: "Nutrition",
     icon: Utensils,
     color: "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-500 dark:text-yellow-400",
   },
-  { 
+  {
     id: "research",
-    title: "Medical Research", 
+    title: "Medical Research",
     icon: Microscope,
     color: "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400",
   },
-  { 
+  {
     id: "pediatrics",
-    title: "Pediatrics", 
+    title: "Pediatrics",
     icon: BabyIcon,
     color: "bg-pink-100 dark:bg-pink-900/20 text-pink-500 dark:text-pink-400",
   },
-  { 
+  {
     id: "vision",
-    title: "Eye Health", 
+    title: "Eye Health",
     icon: EyeIcon,
     color: "bg-teal-100 dark:bg-teal-900/20 text-teal-500 dark:text-teal-400",
   },
-  { 
+  {
     id: "dental",
-    title: "Dental Care", 
-    icon: ToothIcon,
+    title: "Dental Care",
+    icon: CircleDot,
     color: "bg-sky-100 dark:bg-sky-900/20 text-sky-500 dark:text-sky-400",
   },
-  { 
+  {
     id: "respiratory",
-    title: "Respiratory Health", 
-    icon: LungsIcon,
+    title: "Respiratory Health",
+    icon: Wind,
     color: "bg-amber-100 dark:bg-amber-900/20 text-amber-500 dark:text-amber-400",
   },
 ];
@@ -89,7 +89,7 @@ export function TopicCategories({ onSelectTopic }: TopicCategoriesProps) {
 
   return (
     <div className="w-full">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}

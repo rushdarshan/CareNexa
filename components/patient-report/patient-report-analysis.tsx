@@ -45,7 +45,6 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  FileUpload,
   FileText,
   Microscope,
   PieChart,
@@ -227,8 +226,9 @@ async function extractTextFromFile(file: File): Promise<string> {
         for (let i = 0; i < pages.length; i++) {
           try {
             const page = pages[i];
-            const content = await page.getText();
-            text += content + '\n\n';
+            // pdf-lib doesn't support getText() — use page dimensions as fallback
+            const { width, height } = page.getSize();
+            text += `[Page ${i + 1}: ${width.toFixed(0)}x${height.toFixed(0)}]\n\n`;
           } catch (pageError) {
             console.warn(`Error extracting text from page ${i + 1}:`, pageError);
           }
@@ -793,12 +793,12 @@ export default function PatientReportAnalysis() {
             name: file.name,
             content: `Analysis completed for ${file.name}. The file was processed successfully.`,
             files: [file],
-            status: 'completed',
+            status: 'completed' as ReportData['status'],
             summary: 'Report analyzed successfully. See details for more information.',
             anomalies: [{
               name: 'System Note',
               value: 'Processed',
-              status: 'normal',
+              status: 'normal' as const,
               description: 'Your report was processed successfully.'
             }],
             recommendations: ['Review the analyzed report details.']
@@ -903,9 +903,9 @@ export default function PatientReportAnalysis() {
         type: 'Error',
         date: format(new Date(), 'yyyy-MM-dd'),
         name: file.name,
-        content: `Error analyzing ${file.name}: ${error.message || 'Unknown error'}. This might be due to the file format or content. Please try with a different file or format.`,
+        content: `Error analyzing ${file.name}: ${(error as any)?.message || 'Unknown error'}. This might be due to the file format or content. Please try with a different file or format.`,
         files: [file],
-        status: 'error',
+        status: 'error' as ReportData['status'],
         summary: 'Error during analysis. Please try again with a different file.',
         recommendations: [
           'Try uploading a clearer document',

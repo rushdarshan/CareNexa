@@ -6,7 +6,6 @@ import {
   Brain,
   Activity,
   Heart,
-  Lungs,
   Thermometer,
   AlertCircle,
   ChevronRight,
@@ -29,7 +28,6 @@ import {
   ArrowUpRight,
   Pill,
   Syringe,
-  Virus,
   Bone,
   Droplets,
   Dna,
@@ -37,7 +35,6 @@ import {
   Waves,
   Ear,
   Eye,
-  Tooth,
   Smile,
   ArrowLeft,
 } from "lucide-react";
@@ -61,7 +58,7 @@ interface Symptom {
   notes?: string;
 }
 
-type SymptomCategory = 
+type SymptomCategory =
   | "neurological"
   | "cardiovascular"
   | "respiratory"
@@ -117,11 +114,11 @@ export function SymptomChecker() {
 
   const commonSymptoms: Symptom[] = [
     // Neurological
-    { 
-      id: "1", 
-      name: "Headache", 
-      severity: 0, 
-      duration: "", 
+    {
+      id: "1",
+      name: "Headache",
+      severity: 0,
+      duration: "",
       category: "neurological",
       description: "Pain or discomfort in the head or face area",
       commonCauses: ["Stress", "Dehydration", "Eye strain", "Tension"],
@@ -130,13 +127,13 @@ export function SymptomChecker() {
     },
     { id: "2", name: "Dizziness", severity: 0, duration: "", category: "neurological" },
     { id: "3", name: "Memory Issues", severity: 0, duration: "", category: "neurological" },
-    
+
     // Cardiovascular
-    { 
-      id: "4", 
-      name: "Chest Pain", 
-      severity: 0, 
-      duration: "", 
+    {
+      id: "4",
+      name: "Chest Pain",
+      severity: 0,
+      duration: "",
       category: "cardiovascular",
       description: "Discomfort or pain in the chest area",
       commonCauses: ["Angina", "Anxiety", "Muscle strain"],
@@ -145,19 +142,19 @@ export function SymptomChecker() {
     },
     { id: "5", name: "Palpitations", severity: 0, duration: "", category: "cardiovascular" },
     { id: "6", name: "Shortness of Breath", severity: 0, duration: "", category: "respiratory" },
-    
+
     // Respiratory
     { id: "7", name: "Cough", severity: 0, duration: "", category: "respiratory" },
     { id: "8", name: "Wheezing", severity: 0, duration: "", category: "respiratory" },
-    
+
     // Gastrointestinal
     { id: "9", name: "Nausea", severity: 0, duration: "", category: "gastrointestinal" },
     { id: "10", name: "Abdominal Pain", severity: 0, duration: "", category: "gastrointestinal" },
-    
+
     // Musculoskeletal
     { id: "11", name: "Joint Pain", severity: 0, duration: "", category: "musculoskeletal" },
     { id: "12", name: "Back Pain", severity: 0, duration: "", category: "musculoskeletal" },
-    
+
     // General
     { id: "13", name: "Fatigue", severity: 0, duration: "", category: "general" },
     { id: "14", name: "Fever", severity: 0, duration: "", category: "general" },
@@ -225,7 +222,7 @@ export function SymptomChecker() {
   const startAnalysis = () => {
     setAnalyzing(true);
     setAnalysisProgress(0);
-    
+
     const interval = setInterval(() => {
       setAnalysisProgress(prev => {
         if (prev >= 100) {
@@ -242,9 +239,9 @@ export function SymptomChecker() {
 
   const addSymptom = (symptom: Symptom) => {
     if (!selectedSymptoms.find(s => s.id === symptom.id)) {
-      setSelectedSymptoms([...selectedSymptoms, { 
-        ...symptom, 
-        severity: 5, 
+      setSelectedSymptoms([...selectedSymptoms, {
+        ...symptom,
+        severity: 5,
         duration: "1-2 days",
         notes: "",
         triggers: [],
@@ -283,11 +280,11 @@ export function SymptomChecker() {
           ...acc,
           [system.id]: system.areas.length
         }), {}),
-        recommendations: bodySystems.flatMap(system => system.areas.map(area => \`\${system.name} - \${area}\`)),
+        recommendations: bodySystems.flatMap(system => system.areas.map(area => `${system.name} - ${area}`)),
         urgency: calculateUrgency(selectedSymptoms)
       }
     };
-    
+
     setSymptomHistory([newEntry, ...symptomHistory]);
     setShowSaveDialog(false);
   };
@@ -363,8 +360,8 @@ export function SymptomChecker() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Previous
         </button>
-        <button 
-          className="next-button" 
+        <button
+          className="next-button"
           onClick={handleNext}
           disabled={!selectedSystem}
         >

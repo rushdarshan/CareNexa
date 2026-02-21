@@ -3,6 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  swcMinify: false,
   images: { unoptimized: true },
   // Security: Only expose NEXT_PUBLIC_ vars to client. GEMINI_API_KEY stays server-only.
   // NEXT_PUBLIC_GEMINI_API_KEY is kept for backward compat with existing client components.

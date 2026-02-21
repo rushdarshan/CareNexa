@@ -133,7 +133,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center py-2 px-3 text-base font-medium transition-colors hover:text-primary rounded-md",
+                    "flex items-center py-3 px-3 text-base font-medium transition-colors hover:text-primary rounded-md",
                     pathname === item.href
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground"
@@ -153,7 +153,7 @@ export function Header() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center py-2 px-3 text-base font-medium transition-colors hover:text-primary rounded-md",
+                    "flex items-center py-3 px-3 text-base font-medium transition-colors hover:text-primary rounded-md",
                     pathname === item.href
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground"
