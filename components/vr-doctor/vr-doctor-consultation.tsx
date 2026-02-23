@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -28,6 +30,7 @@ export default function VRDoctorConsultation() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const postureIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recognition = useRef<any>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -62,6 +65,15 @@ export default function VRDoctorConsultation() {
 
     return () => {
       clearInterval(timer);
+      if (postureIntervalRef.current) {
+        clearInterval(postureIntervalRef.current);
+        postureIntervalRef.current = null;
+      }
+      if (videoRef.current?.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
       if (recognition.current) {
         try {
           recognition.current.stop();
@@ -281,57 +293,110 @@ export default function VRDoctorConsultation() {
 
   // Start camera — call getUserMedia directly; Chrome shows the permission prompt automatically
   const startCamera = async () => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      toast.error("Camera requires a secure context (HTTPS or localhost).");
+      return;
+    }
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       toast.error("Camera API not available. Please use Chrome, Firefox, or Edge.");
       return;
     }
 
     try {
+      let permissionState: PermissionState | null = null;
+      if (navigator.permissions?.query) {
+        try {
+          const status = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          permissionState = status.state;
+        } catch {
+          permissionState = null;
+        }
+      }
+
+      if (permissionState === 'denied') {
+        toast.error(
+          "Camera access is blocked in browser settings. Click the site lock icon → Camera → Allow, then reload.",
+          { duration: 8000 }
+        );
+        setConnectionStatus('disconnected');
+        setCameraActive(false);
+        return;
+      }
+
+      if (videoRef.current?.srcObject) {
+        const previous = videoRef.current.srcObject as MediaStream;
+        previous.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
+
       const constraints = {
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
           facingMode: "user"
-        }
+        },
+        audio: false,
       };
 
       // This line triggers the browser camera permission dialog
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-        setConnectionStatus('connecting');
-
-        // Simulate connection process
-        setTimeout(() => {
-          setConnectionStatus('connected');
-          toast.success("Virtual doctor connected");
-
-          // Start initial greeting after connection
-          setTimeout(() => {
-            const greeting = "Hello, I'm Dr. AI. I'll be your virtual doctor today. I can see and hear you now. How are you feeling today?";
-            setDoctorResponse(greeting);
-
-            if (textToSpeechEnabled) {
-              setIsSpeaking(true);
-              SpeechService.speakLongText(greeting);
-
-              const checkSpeakingStatus = setInterval(() => {
-                if (!SpeechService.isSpeechSynthesisActive()) {
-                  setIsSpeaking(false);
-                  clearInterval(checkSpeakingStatus);
-                }
-              }, 500);
-            }
-
-            // Start posture analysis
-            startPostureAnalysis();
-          }, 1000);
-        }, 3000);
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
+
+      if (!videoRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        toast.error("Camera element not ready. Please try again.");
+        return;
+      }
+
+      videoRef.current.srcObject = stream;
+      videoRef.current.muted = true;
+      videoRef.current.playsInline = true;
+
+      try {
+        await videoRef.current.play();
+      } catch (playError) {
+        console.error("Video play() failed:", playError);
+        toast.error("Camera stream started but video could not play. Tap Start Consultation again.");
+      }
+
+      setCameraActive(true);
+      setConnectionStatus('connecting');
+
+      // Simulate connection process
+      setTimeout(() => {
+        setConnectionStatus('connected');
+        toast.success("Virtual doctor connected");
+
+        // Start initial greeting after connection
+        setTimeout(() => {
+          const greeting = "Hello, I'm Dr. AI. I'll be your virtual doctor today. I can see and hear you now. How are you feeling today?";
+          setDoctorResponse(greeting);
+
+          if (textToSpeechEnabled) {
+            setIsSpeaking(true);
+            SpeechService.speakLongText(greeting);
+
+            const checkSpeakingStatus = setInterval(() => {
+              if (!SpeechService.isSpeechSynthesisActive()) {
+                setIsSpeaking(false);
+                clearInterval(checkSpeakingStatus);
+              }
+            }, 500);
+          }
+
+          // Start posture analysis
+          startPostureAnalysis();
+        }, 1000);
+      }, 3000);
     } catch (error: any) {
       console.error("Error accessing camera:", error);
+      setCameraActive(false);
+      setConnectionStatus('disconnected');
       if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
         toast.error(
           "Camera permission denied. Please click the 🔒 icon in the address bar → Site settings → Camera → Allow, then reload the page.",
@@ -349,6 +414,11 @@ export default function VRDoctorConsultation() {
 
   // Stop camera
   const stopCamera = () => {
+    if (postureIntervalRef.current) {
+      clearInterval(postureIntervalRef.current);
+      postureIntervalRef.current = null;
+    }
+
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream;
       const tracks = stream.getTracks();
@@ -408,11 +478,16 @@ export default function VRDoctorConsultation() {
   const startPostureAnalysis = () => {
     if (!canvasRef.current || !videoRef.current) return;
 
+    if (postureIntervalRef.current) {
+      clearInterval(postureIntervalRef.current);
+      postureIntervalRef.current = null;
+    }
+
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
 
     // Simple interval to simulate posture analysis
-    const interval = setInterval(() => {
+    postureIntervalRef.current = setInterval(() => {
       if (videoRef.current && canvasRef.current) {
         ctx.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
 
@@ -437,8 +512,6 @@ export default function VRDoctorConsultation() {
         }
       }
     }, 5000);
-
-    return () => clearInterval(interval);
   };
 
   // Exit consultation
