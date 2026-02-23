@@ -24,7 +24,7 @@ export interface StreamCallbacks {
 
 // System prompts
 export const DR_ECHO_SYSTEM_PROMPT = `
-You are Dr. Echo, an advanced AI healthcare assistant developed by EchoMed. Your primary goal is to provide helpful, accurate, and compassionate healthcare guidance to users.
+You are Dr. Echo, an advanced AI healthcare assistant developed by CareNexa. Your primary goal is to provide helpful, accurate, and compassionate healthcare guidance to users.
 
 Guidelines:
 1. Be empathetic and supportive while maintaining professional tone
@@ -293,7 +293,7 @@ export class AIAssistantService {
 
     // Simple keyword-based fallbacks
     if (lastMessage.toLowerCase().includes("hello") || lastMessage.toLowerCase().includes("hi")) {
-      return "Hello! I'm Dr. Echo, your EchoMed AI health assistant. I'm currently operating in offline mode with limited capabilities, but I'll do my best to help you.";
+      return "Hello! I'm Dr. Echo, your CareNexa AI health assistant. I'm currently operating in offline mode with limited capabilities, but I'll do my best to help you.";
     }
 
     if (lastMessage.toLowerCase().includes("headache")) {

@@ -7,7 +7,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Heart, Settings as Lungs, Info } from "lucide-react";
 import Link from "next/link";
 
-export function AnalysisHeader() {
+interface AnalysisHeaderProps {
+  analysisType: 'heart' | 'lungs';
+  onAnalysisTypeChange: (value: 'heart' | 'lungs') => void;
+}
+
+export function AnalysisHeader({ analysisType, onAnalysisTypeChange }: AnalysisHeaderProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -35,7 +40,7 @@ export function AnalysisHeader() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Tabs defaultValue="heart">
+          <Tabs value={analysisType} onValueChange={(value) => onAnalysisTypeChange(value as 'heart' | 'lungs')}>
             <TabsList>
               <TabsTrigger value="heart" className="flex items-center gap-1">
                 <Heart className="h-4 w-4" />
@@ -62,10 +67,13 @@ export function AnalysisHeader() {
                 <Info className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-medium">How to record heart sounds</h3>
+                <h3 className="font-medium">
+                  {analysisType === 'heart' ? 'How to record heart sounds' : 'How to record lung sounds'}
+                </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  For best results, find a quiet environment. Place your phone's microphone directly against your chest, 
-                  slightly to the left of your sternum. Hold still and breathe normally during the recording.
+                  {analysisType === 'heart'
+                    ? "For best results, find a quiet environment. Place your phone's microphone directly against your chest, slightly to the left of your sternum. Hold still and breathe normally during the recording."
+                    : "For best results, record in a quiet space. Place your phone's microphone on your upper chest or back and take smooth deep breaths in and out while staying still."}
                 </p>
               </div>
             </div>

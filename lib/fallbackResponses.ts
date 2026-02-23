@@ -6,7 +6,7 @@
 // Simple responses to common health questions
 const FALLBACK_RESPONSES: Record<string, string> = {
   "default": "I'm Dr. Echo, your health assistant. I can help answer general health questions, but please consult a healthcare professional for medical advice.",
-  "hello": "Hello! I'm Dr. Echo, your EchoMed AI health assistant. How can I help you with your health today?",
+  "hello": "Hello! I'm Dr. Echo, your CareNexa AI health assistant. How can I help you with your health today?",
   "hi": "Hi there! I'm Dr. Echo. How can I assist you with your health concerns today?",
   "how are you": "I'm functioning well and ready to assist you with health information. How can I help you today?",
   "headache": "Headaches can be caused by many factors including stress, dehydration, lack of sleep, or eyestrain. For occasional headaches, rest, hydration, and over-the-counter pain relievers may help. If you experience severe or recurring headaches, please consult a healthcare professional.",

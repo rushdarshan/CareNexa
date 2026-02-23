@@ -13,8 +13,12 @@ import {
   ArrowRight
 } from "lucide-react";
 
-export function RecommendationsPanel() {
-  const recommendations = [
+interface RecommendationsPanelProps {
+  analysisType: 'heart' | 'lungs';
+}
+
+export function RecommendationsPanel({ analysisType }: RecommendationsPanelProps) {
+  const heartRecommendations = [
     {
       id: 1,
       title: "Continue Regular Monitoring",
@@ -44,12 +48,44 @@ export function RecommendationsPanel() {
     },
   ];
 
+  const lungRecommendations = [
+    {
+      id: 1,
+      title: "Track Breathing Patterns",
+      description: "Log weekly breath-sound checks to watch for any gradual changes.",
+      icon: Activity,
+      iconColor: "text-primary",
+      bgColor: "bg-primary/10",
+      action: "Start Log",
+    },
+    {
+      id: 2,
+      title: "Air Quality Optimization",
+      description: "Reduce exposure to smoke, dust, and strong pollutants to support healthy lungs.",
+      icon: Heart,
+      iconColor: "text-chart-4",
+      bgColor: "bg-chart-4/10",
+      action: "View Tips",
+    },
+    {
+      id: 3,
+      title: "Breathing Exercises",
+      description: "Practice diaphragmatic breathing 5-10 minutes daily to improve lung efficiency.",
+      icon: Utensils,
+      iconColor: "text-chart-3",
+      bgColor: "bg-chart-3/10",
+      action: "Guided Session",
+    },
+  ];
+
+  const recommendations = analysisType === 'heart' ? heartRecommendations : lungRecommendations;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Personalized Recommendations</CardTitle>
         <CardDescription>
-          AI-generated suggestions based on your analysis results
+          AI-generated suggestions based on your {analysisType === 'heart' ? 'heart' : 'lung'} analysis results
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

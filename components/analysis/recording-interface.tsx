@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { Stethoscope, Heart, Activity, TrendingUp, TrendingDown, Brain, AlertCircle } from "lucide-react";
 
-export function RecordingInterface() {
+interface RecordingInterfaceProps {
+  analysisType: 'heart' | 'lungs';
+}
+
+export function RecordingInterface({ analysisType }: RecordingInterfaceProps) {
   const [heartRate, setHeartRate] = useState(72);
   const [confidence, setConfidence] = useState(98.7);
   const [variability, setVariability] = useState(45);
@@ -35,7 +39,7 @@ export function RecordingInterface() {
             <Stethoscope className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl text-primary">Heart Analysis</h1>
+            <h1 className="text-xl text-primary">{analysisType === 'heart' ? 'Heart Analysis' : 'Lung Analysis'}</h1>
             <p className="text-sm text-primary/60">Real-time Monitoring</p>
           </div>
         </div>
@@ -70,11 +74,11 @@ export function RecordingInterface() {
         <div className="metric-group">
           <div className="metric-label">
             <Heart className="h-4 w-4" />
-            Heart Rate
+            {analysisType === 'heart' ? 'Heart Rate' : 'Respiratory Rate'}
           </div>
           <div className="metric-value">
             {heartRate}
-            <span className="metric-unit">BPM</span>
+            <span className="metric-unit">{analysisType === 'heart' ? 'BPM' : 'BrPM'}</span>
             {trend && (
               <span className={`stat-trend ${trend === "up" ? "trend-up" : "trend-down"}`}>
                 {trend === "up" ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -98,11 +102,11 @@ export function RecordingInterface() {
         <div className="metric-group">
           <div className="metric-label">
             <Activity className="h-4 w-4" />
-            HRV Index
+            {analysisType === 'heart' ? 'HRV Index' : 'Breath Variability'}
           </div>
           <div className="metric-value">
             {variability}
-            <span className="metric-unit">ms</span>
+            <span className="metric-unit">{analysisType === 'heart' ? 'ms' : '%'}</span>
           </div>
         </div>
       </div>
@@ -114,7 +118,7 @@ export function RecordingInterface() {
         </h2>
         <div className="assessment-value">
           <div className="status-dot" />
-          Normal sinus rhythm detected
+          {analysisType === 'heart' ? 'Normal sinus rhythm detected' : 'No acute breathing pattern abnormality detected'}
         </div>
       </div>
     </div>

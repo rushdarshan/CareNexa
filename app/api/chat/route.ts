@@ -1,8 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 // Rate limiting map (in-memory, use Redis in production)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 

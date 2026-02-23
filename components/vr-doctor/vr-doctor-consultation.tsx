@@ -192,11 +192,12 @@ export default function VRDoctorConsultation() {
         SpeechService.setSpeechPitch(1.0);
         SpeechService.setSpeechVolume(1.0);
       } else {
-        toast.error("Text-to-speech initialization failed");
+        toast.info("Voice output isn't available in this browser session. You can continue using text responses.");
         setTextToSpeechEnabled(false);
       }
     } catch (error) {
       console.error("Text-to-speech error:", error);
+      toast.info("Voice output is unavailable right now. Text responses will continue.");
       setTextToSpeechEnabled(false);
     }
   };

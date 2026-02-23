@@ -8,8 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Share, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
-export function ResultsDisplay() {
-  const analysisResults = {
+interface ResultsDisplayProps {
+  analysisType: 'heart' | 'lungs';
+}
+
+export function ResultsDisplay({ analysisType }: ResultsDisplayProps) {
+  const heartResults = {
     primaryCondition: {
       name: "Normal Sinus Rhythm",
       confidence: 92,
@@ -48,6 +52,48 @@ export function ResultsDisplay() {
       },
     ],
   };
+
+  const lungResults = {
+    primaryCondition: {
+      name: "Clear Breath Sounds",
+      confidence: 89,
+      status: "normal",
+    },
+    confidenceScores: [
+      { name: "Clear Breath Sounds", value: 89 },
+      { name: "Mild Wheeze Pattern", value: 7 },
+      { name: "Crackle Pattern", value: 3 },
+      { name: "Other", value: 1 },
+    ],
+    keyFindings: [
+      {
+        id: 1,
+        type: "normal",
+        title: "Stable Breathing Rhythm",
+        description: "Breathing cadence appears regular across the captured sample.",
+        icon: CheckCircle2,
+        iconColor: "text-success",
+      },
+      {
+        id: 2,
+        type: "info",
+        title: "Respiratory Rate",
+        description: "Estimated respiratory rate is within a normal resting range.",
+        icon: Info,
+        iconColor: "text-primary",
+      },
+      {
+        id: 3,
+        type: "warning",
+        title: "Minor Airflow Variation",
+        description: "Small variation in airflow intensity detected; monitor if symptoms persist.",
+        icon: AlertTriangle,
+        iconColor: "text-warning",
+      },
+    ],
+  };
+
+  const analysisResults = analysisType === 'heart' ? heartResults : lungResults;
   
   const COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))", "hsl(var(--muted-foreground))"];
   
@@ -56,7 +102,7 @@ export function ResultsDisplay() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Analysis Results</CardTitle>
+            <CardTitle>{analysisType === 'heart' ? 'Heart Analysis Results' : 'Lung Analysis Results'}</CardTitle>
             <CardDescription>
               AI-powered assessment of your recording
             </CardDescription>

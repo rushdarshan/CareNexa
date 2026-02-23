@@ -98,7 +98,9 @@ export function Header() {
 
           <div className="flex items-center space-x-2">
             <ModeToggle />
-            <Button className="hidden md:flex">Get Started</Button>
+            <Button className="hidden md:flex" asChild>
+              <Link href="/doctor-appointments">Get Started</Link>
+            </Button>
 
             {/* Hamburger Menu Button */}
             <Button
@@ -166,7 +168,9 @@ export function Header() {
               ))}
             </div>
 
-            <Button className="w-full mt-4 md:hidden">Get Started</Button>
+            <Button className="w-full mt-4 md:hidden" asChild>
+              <Link href="/doctor-appointments" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
+            </Button>
           </div>
         </motion.div>
       )}
