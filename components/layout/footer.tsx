@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Stethoscope className="h-6 w-6 text-primary" />
-              <span className="font-bold text-lg">EchoMed</span>
+              <span className="font-bold text-lg">NexaCare</span>
             </div>
             <p className="text-muted-foreground text-sm">
               Transforming smartphones into powerful diagnostic tools with AI technology.
@@ -126,7 +126,7 @@ export function Footer() {
         
         <div className="border-t mt-12 pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} EchoMed. All rights reserved.
+            © {new Date().getFullYear()} NexaCare. All rights reserved.
           </p>
         </div>
       </div>

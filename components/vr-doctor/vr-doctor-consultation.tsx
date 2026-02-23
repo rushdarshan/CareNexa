@@ -239,6 +239,44 @@ export default function VRDoctorConsultation() {
     }
   };
 
+  const speakDoctorResponse = (response: string) => {
+    if (!textToSpeechEnabled) return;
+
+    setIsSpeaking(true);
+    SpeechService.speakLongText(response);
+
+    const checkSpeakingStatus = setInterval(() => {
+      if (!SpeechService.isSpeechSynthesisActive()) {
+        setIsSpeaking(false);
+        clearInterval(checkSpeakingStatus);
+      }
+    }, 500);
+  };
+
+  const buildFallbackResponse = (input: string) => {
+    const normalizedInput = input.toLowerCase();
+    let response = '';
+
+    if (normalizedInput.includes('headache')) {
+      response = "I notice you're experiencing headaches. How long have you been feeling this way? Is it accompanied by any other symptoms like nausea or sensitivity to light? Based on your posture, I can see some tension in your neck which could be contributing to this.";
+      setPostureFeedback("I notice some tension in your neck and shoulders. Try relaxing your shoulders and sitting more upright.");
+      updateHealthMetric('stressLevel', 'Elevated');
+    } else if (normalizedInput.includes('back pain') || normalizedInput.includes('backache')) {
+      response = "I see you're experiencing back pain. Your posture suggests some misalignment. Try sitting with your back straight, shoulders relaxed, and feet flat on the floor. Can you tell me when the pain started and if any particular movements make it worse?";
+      setPostureFeedback("Your current posture is putting strain on your lower back. Try sitting more upright with your shoulders back.");
+      updateHealthMetric('posture', 'Poor');
+    } else if (normalizedInput.includes('tired') || normalizedInput.includes('fatigue')) {
+      response = "Fatigue can be caused by many factors including stress, poor sleep, or underlying health conditions. I notice from your appearance that you may not be getting enough rest. Are you having trouble sleeping? How are your energy levels throughout the day?";
+      updateHealthMetric('stressLevel', 'High');
+    } else if (normalizedInput.includes('hello') || normalizedInput.includes('hi')) {
+      response = "Hello there! I'm your virtual doctor. How are you feeling today? I'm here to help assess your health concerns. Feel free to tell me about any symptoms you're experiencing, and I'll do my best to provide guidance.";
+    } else {
+      response = "Thank you for sharing that information. Based on what you've told me and what I can observe, I'd like to ask a few more questions to better understand your condition. Could you elaborate on when these symptoms started and if anything makes them better or worse?";
+    }
+
+    return response;
+  };
+
   // Process user's voice input
   const processUserInput = async (input: string) => {
     if (!input.trim()) return;
@@ -246,49 +284,71 @@ export default function VRDoctorConsultation() {
     setIsTyping(true);
     setUserInput('');
 
-    // Simulate AI processing with delay
-    setTimeout(() => {
-      // Generate doctor response based on input
-      let response = '';
+    try {
+      const systemContext = [
+        `Session time: ${formatTime(sessionTime)}`,
+        `Camera active: ${cameraActive ? 'yes' : 'no'}`,
+        `Health metrics: HR ${healthMetrics.heartRate} BPM, Temp ${healthMetrics.temperature} F, BP ${healthMetrics.bloodPressure}, O2 ${healthMetrics.oxygenLevel}%, Stress ${healthMetrics.stressLevel}, Posture ${healthMetrics.posture}`,
+        postureFeedback ? `Posture feedback: ${postureFeedback}` : null,
+      ].filter(Boolean).join('\n');
 
-      // Simple keyword matching for demo purposes
-      if (input.toLowerCase().includes('headache')) {
-        response = "I notice you're experiencing headaches. How long have you been feeling this way? Is it accompanied by any other symptoms like nausea or sensitivity to light? Based on your posture, I can see some tension in your neck which could be contributing to this.";
-        setPostureFeedback("I notice some tension in your neck and shoulders. Try relaxing your shoulders and sitting more upright.");
-        updateHealthMetric('stressLevel', 'Elevated');
-      } else if (input.toLowerCase().includes('back pain') || input.toLowerCase().includes('backache')) {
-        response = "I see you're experiencing back pain. Your posture suggests some misalignment. Try sitting with your back straight, shoulders relaxed, and feet flat on the floor. Can you tell me when the pain started and if any particular movements make it worse?";
-        setPostureFeedback("Your current posture is putting strain on your lower back. Try sitting more upright with your shoulders back.");
-        updateHealthMetric('posture', 'Poor');
-      } else if (input.toLowerCase().includes('tired') || input.toLowerCase().includes('fatigue')) {
-        response = "Fatigue can be caused by many factors including stress, poor sleep, or underlying health conditions. I notice from your appearance that you may not be getting enough rest. Are you having trouble sleeping? How are your energy levels throughout the day?";
-        updateHealthMetric('stressLevel', 'High');
-      } else if (input.toLowerCase().includes('hello') || input.toLowerCase().includes('hi')) {
-        response = "Hello there! I'm your virtual doctor. How are you feeling today? I'm here to help assess your health concerns. Feel free to tell me about any symptoms you're experiencing, and I'll do my best to provide guidance.";
-      } else {
-        response = "Thank you for sharing that information. Based on what you've told me and what I can observe, I'd like to ask a few more questions to better understand your condition. Could you elaborate on when these symptoms started and if anything makes them better or worse?";
+      const triageRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: input,
+          systemContext,
+          agentType: 'triage',
+        }),
+      });
+
+      let selectedAgentType: 'general' | 'nutrition' | 'fitness' | 'mental_health' | 'emergency' = 'general';
+
+      if (triageRes.ok) {
+        const triageData = await triageRes.json();
+        const triageText = String(triageData?.response || '').replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        try {
+          const parsed = JSON.parse(triageText);
+          if (['general', 'nutrition', 'fitness', 'mental_health', 'emergency'].includes(parsed?.agentType)) {
+            selectedAgentType = parsed.agentType;
+          }
+        } catch {
+          selectedAgentType = 'general';
+        }
+      }
+
+      const aiRes = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: input,
+          systemContext,
+          agentType: selectedAgentType,
+        }),
+      });
+
+      if (!aiRes.ok) {
+        throw new Error(`AI request failed (${aiRes.status})`);
+      }
+
+      const aiData = await aiRes.json();
+      const response = String(aiData?.response || '').trim();
+      if (!response) {
+        throw new Error('Empty AI response');
       }
 
       setDoctorResponse(response);
+      speakDoctorResponse(response);
+    } catch (error) {
+      console.error('VR doctor AI mode error:', error);
+      toast.error('AI mode is temporarily unavailable. Switched to offline response mode.');
+      const fallback = buildFallbackResponse(input);
+      setDoctorResponse(fallback);
+      speakDoctorResponse(fallback);
+    } finally {
       setIsTyping(false);
-
-      // Speak the response if text-to-speech is enabled
-      if (textToSpeechEnabled) {
-        setIsSpeaking(true);
-        SpeechService.speakLongText(response);
-
-        // Setup a check to detect when speech has finished
-        const checkSpeakingStatus = setInterval(() => {
-          if (!SpeechService.isSpeechSynthesisActive()) {
-            setIsSpeaking(false);
-            clearInterval(checkSpeakingStatus);
-          }
-        }, 500); // Check every half second
-      }
-
-      // Randomize some health metrics to simulate real-time monitoring
       simulateVitalSigns();
-    }, 1500);
+    }
   };
 
   // Start camera — call getUserMedia directly; Chrome shows the permission prompt automatically
