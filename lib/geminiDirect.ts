@@ -35,7 +35,7 @@ export async function getAIResponse(userMessage: string): Promise<string> {
     
     // Get the generative model
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro"
+      model: "gemini-1.5-flash"
     });
     
     // Generate content with error handling - proper format
@@ -74,7 +74,7 @@ export async function getStreamingAIResponse(
     
     // Get the generative model
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro"
+      model: "gemini-1.5-flash"
     });
     
     // Generate streaming content with error handling - proper format

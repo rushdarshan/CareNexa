@@ -379,7 +379,7 @@ async function analyzeWithAI(text: string) {
 
   try {
     console.log('Starting AI analysis...');
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Create a more specific and detailed prompt
     const prompt = `

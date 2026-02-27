@@ -14,7 +14,7 @@ export const getGeminiResponse = async (history: { role: string; parts: string }
   if (!apiKey) return "Error: API Key not configured.";
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Map roles to Gemini format (user/model)
     const formattedHistory = history.map(msg => ({

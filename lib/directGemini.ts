@@ -16,29 +16,29 @@ if (!API_KEY) {
 
 export async function generateDirectResponse(prompt: string): Promise<string> {
   try {
-    console.log("Testing Gemini API with model: gemini-pro");
-    
+    console.log("Testing Gemini API with model: gemini-1.5-flash");
+
     // Initialize with basic configuration
     const genAI = new GoogleGenerativeAI(API_KEY);
-    
+
     // Get the model with explicit name
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     // Format the prompt as a content part
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }]
     });
-    
+
     const response = result.response;
     const text = response.text();
-    
+
     return text;
   } catch (error: any) {
     console.error("Error in generateDirectResponse:", error);
     console.error("Error message:", error.message);
     console.error("Error name:", error.name);
     console.error("Stack trace:", error.stack);
-    
+
     return "I'm sorry, I encountered an error processing your request. Please try again later.";
   }
 }
@@ -48,34 +48,34 @@ export async function generateDirectStreamingResponse(
   onUpdate: (text: string) => void
 ): Promise<string> {
   try {
-    console.log("Testing Gemini streaming API with model: gemini-pro");
-    
+    console.log("Testing Gemini streaming API with model: gemini-1.5-flash");
+
     // Initialize with basic configuration
     const genAI = new GoogleGenerativeAI(API_KEY);
-    
+
     // Get the model with explicit name
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     // Format the prompt as a content part
     const result = await model.generateContentStream({
       contents: [{ role: "user", parts: [{ text: prompt }] }]
     });
-    
+
     let fullResponse = "";
-    
+
     for await (const chunk of result.stream) {
       const chunkText = chunk.text();
       fullResponse += chunkText;
       onUpdate(fullResponse);
     }
-    
+
     return fullResponse;
   } catch (error: any) {
     console.error("Error in generateDirectStreamingResponse:", error);
     console.error("Error message:", error.message);
     console.error("Error name:", error.name);
     console.error("Stack trace:", error.stack);
-    
+
     const errorMessage = "I'm sorry, I encountered an error processing your request. Please try again later.";
     onUpdate(errorMessage);
     return errorMessage;

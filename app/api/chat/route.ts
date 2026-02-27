@@ -38,11 +38,10 @@ function getModelCandidates(): string[] {
   const configuredModel = process.env.GEMINI_MODEL?.trim();
   return [
     configuredModel,
+    "gemini-3.1-pro-preview",  // Latest Gemini 3.1 (active from March 6 2026)
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-1.5-pro-latest",
     "gemini-1.5-pro",
   ].filter((value, index, arr): value is string => !!value && arr.indexOf(value) === index);
 }
