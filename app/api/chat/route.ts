@@ -34,6 +34,19 @@ function getServerGeminiKey(): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function getModelCandidates(): string[] {
+  const configuredModel = process.env.GEMINI_MODEL?.trim();
+  return [
+    configuredModel,
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro",
+  ].filter((value, index, arr): value is string => !!value && arr.indexOf(value) === index);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const ipKey = getRateLimitKey(req);
@@ -83,16 +96,12 @@ IMMEDIATELY advise calling emergency services (911/112/999). Provide basic first
 
     const ai = new GoogleGenerativeAI(apiKey);
 
-    const modelCandidates = [
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
-      "gemini-1.5-pro",
-      "gemini-pro",
-    ];
+    const modelCandidates = getModelCandidates();
 
     let response = "";
     let selectedModel = "";
     let lastModelError: unknown = null;
+    const modelErrors: Array<{ model: string; status?: number; message: string }> = [];
 
     for (const modelName of modelCandidates) {
       try {
@@ -103,19 +112,35 @@ IMMEDIATELY advise calling emergency services (911/112/999). Provide basic first
         if (response && response.trim().length > 0) {
           break;
         }
-      } catch (modelError) {
+      } catch (modelError: any) {
         lastModelError = modelError;
+        modelErrors.push({
+          model: modelName,
+          status: modelError?.status,
+          message: modelError?.message || "Unknown model error",
+        });
       }
     }
 
     if (!response || response.trim().length === 0) {
+      const lastError = modelErrors[modelErrors.length - 1];
       console.error("[API/CHAT MODEL ERROR]", {
         message: "All candidate models failed or returned empty output",
         modelCandidates,
+        modelErrors,
         lastModelError,
       });
+
       return NextResponse.json(
-        { error: "AI model unavailable", fallback: true },
+        {
+          error: "AI model unavailable",
+          fallback: true,
+          diagnostics: {
+            tried: modelCandidates,
+            lastStatus: lastError?.status,
+            lastMessage: lastError?.message,
+          },
+        },
         { status: 503 }
       );
     }
