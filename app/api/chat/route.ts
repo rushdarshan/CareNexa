@@ -23,6 +23,17 @@ function checkRateLimit(key: string): boolean {
   return true;
 }
 
+function getServerGeminiKey(): string | null {
+  const key =
+    process.env.GEMINI_API_KEY ||
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY ||
+    "";
+
+  const trimmed = key.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const ipKey = getRateLimitKey(req);
@@ -61,20 +72,59 @@ IMMEDIATELY advise calling emergency services (911/112/999). Provide basic first
       ? `${systemPrompt}\n\nUSER HEALTH CONTEXT:\n${systemContext}\n\nUSER QUERY: ${prompt}`
       : `${systemPrompt}\n\nUSER QUERY: ${prompt}`;
 
-    // Try server-side key first, fallback to any available key
-    const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    // Try all supported key names used in this codebase
+    const apiKey = getServerGeminiKey();
     if (!apiKey) {
-      return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+      return NextResponse.json({
+        error: "API key not configured",
+        expected: ["GEMINI_API_KEY", "NEXT_PUBLIC_GEMINI_API_KEY", "NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY"],
+      }, { status: 500 });
     }
+
     const ai = new GoogleGenerativeAI(apiKey);
-    const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(fullPrompt);
-    const response = result.response.text();
+
+    const modelCandidates = [
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-1.5-pro",
+      "gemini-pro",
+    ];
+
+    let response = "";
+    let selectedModel = "";
+    let lastModelError: unknown = null;
+
+    for (const modelName of modelCandidates) {
+      try {
+        const model = ai.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(fullPrompt);
+        response = result.response.text();
+        selectedModel = modelName;
+        if (response && response.trim().length > 0) {
+          break;
+        }
+      } catch (modelError) {
+        lastModelError = modelError;
+      }
+    }
+
+    if (!response || response.trim().length === 0) {
+      console.error("[API/CHAT MODEL ERROR]", {
+        message: "All candidate models failed or returned empty output",
+        modelCandidates,
+        lastModelError,
+      });
+      return NextResponse.json(
+        { error: "AI model unavailable", fallback: true },
+        { status: 503 }
+      );
+    }
 
     // Audit log
     const auditEntry = {
       timestamp: new Date().toISOString(),
       agentType,
+      model: selectedModel,
       promptLength: prompt.length,
       hasContext: !!systemContext,
       responseLength: response.length,
